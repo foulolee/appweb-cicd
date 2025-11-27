@@ -1,0 +1,62 @@
+name: CI-CD appweb
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write   # deployment.yaml 수정 후 커밋에 필요
+
+env:
+  REGISTRY: 192.168.10.10
+  IMAGE_NAME: appweb
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Build with Maven
+        working-directory: app
+        run: mvn -B package
+
+      - name: Copy WAR to docker context
+        run: |
+          cp app/target/appweb.war docker/appweb.war
+
+      - name: Set image tag (DATE_TAG)
+        run: echo "DATE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+      - name: Login to registry
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+
+      - name: Build and push Docker image
+        working-directory: docker
+        run: |
+          docker build -t $REGISTRY/$IMAGE_NAME:${{ env.DATE_TAG }} .
+          docker push $REGISTRY/$IMAGE_NAME:${{ env.DATE_TAG }}
+
+      - name: Update deployment.yaml image tag
+        run: |
+          sed -i "s#image: .*#image: ${REGISTRY}/${IMAGE_NAME}:${DATE_TAG}#g" k8s/deployment.yaml
+          echo "Updated image to ${REGISTRY}/${IMAGE_NAME}:${DATE_TAG}"
+
+      - name: Commit and push updated manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add k8s/deployment.yaml
+          git commit -m "Update image tag to ${DATE_TAG}" || echo "No changes to commit"
+          git push origin HEAD:main
