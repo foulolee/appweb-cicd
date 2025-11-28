@@ -1,0 +1,29 @@
+name: Test registry login
+
+on:
+  workflow_dispatch:   # Actions 화면에서 수동으로 실행
+
+env:
+  REGISTRY: 211.34.229.48:5000
+
+jobs:
+  test-login:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check secrets exist
+        run: |
+          if [ -z "${{ secrets.REGISTRY_USER }}" ]; then
+            echo "❌ REGISTRY_USER is empty"
+            exit 1
+          fi
+          if [ -z "${{ secrets.REGISTRY_PASSWORD }}" ]; then
+            echo "❌ REGISTRY_PASSWORD is empty"
+            exit 1
+          fi
+          echo "✅ Secrets are set."
+
+      - name: Login to registry
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" \
+            | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin
