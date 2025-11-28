@@ -1,63 +1,70 @@
-name: CI-CD appweb
+name: CI-CD
 
 on:
   push:
-    branches:
-      - main
-
-permissions:
-  contents: write   # deployment.yaml 수정 후 커밋에 필요
+    branches: [ "main" ]      # main에 push될 때만 자동 실행
+  workflow_dispatch:          # 필요 시 수동 실행도 가능
 
 env:
-  REGISTRY: 211.34.229.48:5000
-  IMAGE_NAME: appweb
+  REGISTRY: 211.34.229.48:5000   # ✅ 레지스트리 주소
+  IMAGE_NAME: appweb             # ✅ 우리가 쓰는 이미지 이름
+  DEPLOYMENT_FILE: k8s/deployment.yaml
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted
+    runs-on: self-hosted         # ✅ self-hosted runner 에서 실행 (leesangin 서버)
 
     steps:
+      # 1. 코드 가져오기
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      # 2. JDK + Maven 세팅
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '11'
+          java-version: '17'
+          cache: maven
 
-      - name: Build with Maven
-        working-directory: app
-        run: mvn -B package
+      # 3. app/ 에서 WAR 빌드
+      - name: Build WAR with Maven
+        working-directory: ./app
+        run: mvn -B clean package
 
+      # 4. 날짜시간 태그 (YYYYMMDDHHMMSS)
+      - name: Set image tag (datetime)
+        run: echo "IMAGE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+      # 5. WAR 파일을 docker 폴더로 복사 (Docker build context용)
       - name: Copy WAR to docker context
-        run: |
-          cp app/target/appweb.war docker/appweb.war
+        run: cp app/target/*.war docker/appweb.war
 
-      - name: Set image tag (DATE_TAG)
-        run: echo "DATE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
-
-      - name: Login to registry
+      # 6. Docker Registry 로그인 (podman-docker 통해 podman 사용)
+      - name: Log in to registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD }}" \
             | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin
 
-      - name: Build and push Docker image
-        working-directory: docker
+      # 7. Docker 이미지 빌드 & Push
+      - name: Build and push image
         run: |
-          docker build -t $REGISTRY/$IMAGE_NAME:${{ env.DATE_TAG }} .
-          docker push $REGISTRY/$IMAGE_NAME:${{ env.DATE_TAG }}
+          docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile docker
+          docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
-      - name: Update deployment.yaml image tag
+      # 8. k8s/deployment.yaml 의 image 태그를 새 태그로 변경
+      - name: Update k8s deployment image tag
         run: |
-          sed -i "s#image: .*#image: ${REGISTRY}/${IMAGE_NAME}:${DATE_TAG}#g" k8s/deployment.yaml
-          echo "Updated image to ${REGISTRY}/${IMAGE_NAME}:${DATE_TAG}"
+          sed -i "s|\(image:\s*$REGISTRY/$IMAGE_NAME:\).*|\1$IMAGE_TAG|" $DEPLOYMENT_FILE
+          echo "Updated image tag to $IMAGE_TAG in $DEPLOYMENT_FILE"
 
-      - name: Commit and push updated manifest
+      # 9. 변경된 YAML commit + push (ArgoCD가 감지)
+      - name: Commit and push manifest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add k8s/deployment.yaml
-          git commit -m "Update image tag to ${DATE_TAG}" || echo "No changes to commit"
-          git push origin HEAD:main
+          git add $DEPLOYMENT_FILE
+          git commit -m "Update image tag to $IMAGE_TAG" || echo "No changes to commit"
+          git push
