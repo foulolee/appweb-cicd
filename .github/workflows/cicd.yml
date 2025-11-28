@@ -39,13 +39,13 @@ jobs:
 
       - name: Login to registry
         run: |
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin --tls-verify=false
 
       - name: Build and push Docker image
         working-directory: docker
         run: |
           docker build -t $REGISTRY/$IMAGE_NAME:${{ env.DATE_TAG }} .
-          docker push $REGISTRY/$IMAGE_NAME:${{ env.DATE_TAG }}
+          docker push --tls-verify=false $REGISTRY/$IMAGE_NAME:${{ env.DATE_TAG }}
 
       - name: Update deployment.yaml image tag
         run: |
