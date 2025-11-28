@@ -9,7 +9,7 @@ permissions:
   contents: write   # deployment.yaml 수정 후 커밋에 필요
 
 env:
-  REGISTRY: 192.168.10.10
+  REGISTRY: 211.34.229.48:5000
   IMAGE_NAME: appweb
 
 jobs:
