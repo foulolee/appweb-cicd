@@ -26,4 +26,4 @@ jobs:
       - name: Login to registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD }}" \
-            | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+            | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin --tls-verify=false
