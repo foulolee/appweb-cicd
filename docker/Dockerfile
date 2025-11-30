@@ -1,5 +1,5 @@
 # 1) Tomcat이 설치된 CentOS7 기반 이미지
-FROM 192.168.10.10/cent7-tomcat:base
+FROM tomcat:9.0-jdk11-temurin
 
 # 2) 서버 설정 복사 (Git 리포지토리의 docker/server.xml 사용)
 COPY server.xml /usr/local/tomcat/conf/server.xml
@@ -13,3 +13,4 @@ EXPOSE 8080
 
 # 5) Tomcat 실행
 CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+
