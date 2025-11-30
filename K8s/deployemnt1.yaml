@@ -24,7 +24,7 @@ spec:
                 - k8s-worker01
       containers:
       - name: nginx
-        image: nginx:latest
+        image: 211.34.229.48:5000/appweb:20251130215818
         ports:
         - containerPort: 80
 ---
@@ -54,6 +54,6 @@ spec:
                 - k8s-worker02
       containers:
       - name: nginx
-        image: nginx:latest
+        image: 211.34.229.48:5000/appweb:20251130215818
         ports:
         - containerPort: 80
