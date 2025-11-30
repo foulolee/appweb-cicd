@@ -26,6 +26,32 @@
     </dependencies>
 
     <build>
-        <finalName>appweb</finalName> <!-- 결과물이 appweb.war -->
+        <!-- 결과물이 appweb.war -->
+        <finalName>appweb</finalName>
+
+        <plugins>
+            <!-- 자바 1.8 컴파일용 플러그인 명시 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- 최신 WAR 플러그인 명시 (옛날 2.2 대신) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <!-- web.xml 없을 때 에러 안 나게 -->
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>
