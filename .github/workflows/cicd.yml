@@ -8,7 +8,7 @@ on:
 env:
   REGISTRY: 211.34.229.48:5000   # ✅ 레지스트리 주소
   IMAGE_NAME: appweb             # ✅ 우리가 쓰는 이미지 이름
-  DEPLOYMENT_FILE: k8s/deployment.yaml
+  DEPLOYMENT_FILE: k8s/deployment1.yaml
 
 jobs:
   build-and-deploy:
