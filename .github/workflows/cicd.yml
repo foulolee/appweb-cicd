@@ -2,21 +2,20 @@ name: CI-CD
 
 on:
   push:
-    branches: [ "main" ]          # main에 push될 때 자동 실행
-  workflow_dispatch:              # 수동 실행도 가능
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
-  contents: write                 # git push 하려면 필요
+  contents: write
 
 env:
-  REGISTRY: 211.34.229.48:5000    # Docker Registry 주소
-  IMAGE_NAME: appweb              # 이미지 이름
-  DEPLOYMENT_FILE: K8s/deployemnt1.yaml   # K8s YAML 경로 (철자 주의)
+  REGISTRY: 211.34.229.48:5000
+  IMAGE_NAME: appweb
+  DEPLOYMENT_FILE: K8s/deployemnt1.yaml
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted          # leesangin 서버의 self-hosted runner
-
+    runs-on: self-hosted
     steps:
       # 1. 코드 체크아웃
       - name: Checkout
