@@ -2,24 +2,27 @@ name: CI-CD
 
 on:
   push:
-    branches: [ "main" ]      # main에 push될 때만 자동 실행
-  workflow_dispatch:          # 필요 시 수동 실행도 가능
+    branches: [ "main" ]      # main에 push될 때 자동 실행
+  workflow_dispatch:          # 수동 실행도 가능
+
+permissions:
+  contents: write             # git push 하려면 필요
 
 env:
-  REGISTRY: 211.34.229.48:5000   # ✅ 레지스트리 주소
-  IMAGE_NAME: appweb             # ✅ 우리가 쓰는 이미지 이름
-  DEPLOYMENT_FILE: K8s/deployemnt1.yaml
+  REGISTRY: 211.34.229.48:5000   # 레지스트리 주소
+  IMAGE_NAME: appweb             # 이미지 이름
+  DEPLOYMENT_FILE: K8s/deployemnt1.yaml   # K8s yaml 경로
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted         # ✅ self-hosted runner 에서 실행 (leesangin 서버)
+    runs-on: self-hosted         # leesangin 서버에서 실행
 
     steps:
       # 1. 코드 가져오기
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. JDK + Maven 세팅
+      # 2. JDK + Maven 세팅 (Java 8)
       - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
@@ -40,7 +43,7 @@ jobs:
       - name: Copy WAR to docker context
         run: cp app/target/*.war docker/appweb.war
 
-      # 6. Docker Registry 로그인 (podman-docker 통해 podman 사용)
+      # 6. Docker Registry 로그인
       - name: Log in to registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD }}" \
@@ -52,10 +55,10 @@ jobs:
           docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile docker
           docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
-      # 8. k8s/deployment.yaml 의 image 태그를 새 태그로 변경
+      # 8. K8s yaml 에 image 태그를 새 태그로 통째로 교체
       - name: Update k8s deployment image tag
         run: |
-          sed -i "s|\(image:\s*$REGISTRY/$IMAGE_NAME:\).*|\1$IMAGE_TAG|" $DEPLOYMENT_FILE
+          sed -i "s|image:.*|image: $REGISTRY/$IMAGE_NAME:$IMAGE_TAG|" "$DEPLOYMENT_FILE"
           echo "Updated image tag to $IMAGE_TAG in $DEPLOYMENT_FILE"
 
       # 9. 변경된 YAML commit + push (ArgoCD가 감지)
