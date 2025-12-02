@@ -19,5 +19,5 @@ public class HelloServlet extends HttpServlet {
         out.println("<h1>안녕ㅇ, K8S + ArgoCD + GitHub Actions!</h1>");
         out.println("</body></html>");
     }
-
 }
+
