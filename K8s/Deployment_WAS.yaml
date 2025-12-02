@@ -1,0 +1,28 @@
+############################################
+# 2. WAS (Tomcat)
+############################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: was-app
+  namespace: app-namespace
+  labels:
+    app: was-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: was-app
+  template:
+    metadata:
+      labels:
+        app: was-app
+    spec:
+      containers:
+        - name: tomcat
+          image: tomcat:9.0-jdk11-temurin
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
