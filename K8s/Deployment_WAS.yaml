@@ -19,7 +19,7 @@ spec:
         app: was-app
     spec:
       imagePullSecrets:
-        - name: regcred
+        - name: appweb-regcred
       containers:
         - name: tomcat
           image: 211.34.229.48:5000/appweb:20251202123502
@@ -28,3 +28,4 @@ spec:
           env:
             - name: TZ
               value: "Asia/Seoul"
+
