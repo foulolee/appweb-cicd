@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: tomcat
-          image: tomcat:9.0-jdk11-temurin
+          image: 211.34.229.48:5000/appweb:20251202122813
           ports:
             - containerPort: 8080
           env:
