@@ -11,7 +11,7 @@ permissions:
 env:
   REGISTRY: 211.34.229.48:5000
   IMAGE_NAME: appweb
-  DEPLOYMENT_FILE: K8s/deployemnt1.yaml
+  DEPLOYMENT_FILE: K8s/Deployment_WAS.yaml
 
 jobs:
   build-and-deploy:
