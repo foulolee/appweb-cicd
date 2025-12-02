@@ -1,0 +1,157 @@
+############################################
+# 1. Namespace
+############################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-namespace
+---
+############################################
+# 2. WAS (Tomcat)
+############################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: was-app
+  namespace: app-namespace
+  labels:
+    app: was-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: was-app
+  template:
+    metadata:
+      labels:
+        app: was-app
+    spec:
+      containers:
+        - name: tomcat
+          image: tomcat:9.0-jdk11-temurin
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: was-svc
+  namespace: app-namespace
+spec:
+  type: ClusterIP
+  selector:
+    app: was-app
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+############################################
+# 3. WEB (Nginx → Tomcat, HTTP only)
+############################################
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-nginx-conf
+  namespace: app-namespace
+data:
+  nginx.conf: |
+    user  nginx;
+    worker_processes  auto;
+
+    events {
+      worker_connections  1024;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+
+      upstream was_backend {
+        server was-svc.app-namespace.svc.cluster.local:8080;
+      }
+
+      # 80 → WAS
+      server {
+        listen 80;
+        server_name _;
+
+        location / {
+          proxy_pass http://was_backend;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+      }
+
+      # 443 → WAS (여기도 그냥 HTTP, TLS는 L4에서 종료)
+      server {
+        listen 443;
+        server_name _;
+
+        location / {
+          proxy_pass http://was_backend;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-nginx
+  namespace: app-namespace
+  labels:
+    app: web-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-nginx
+  template:
+    metadata:
+      labels:
+        app: web-nginx
+    spec:
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: web-nginx-conf
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+---
+############################################
+# 4. Service (NodePort)
+############################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-nginx-svc
+  namespace: app-namespace
+spec:
+  type: NodePort
+  selector:
+    app: web-nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+    - name: https
+      port: 443
+      targetPort: 443
+      nodePort: 30443
