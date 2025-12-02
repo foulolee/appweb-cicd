@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: tomcat
-          image: 211.34.229.48:5000/appweb:20251202122813
+          image: 211.34.229.48:5000/appweb:20251202123004
           ports:
             - containerPort: 8080
           env:
