@@ -18,6 +18,8 @@ spec:
       labels:
         app: was-app
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: tomcat
           image: 211.34.229.48:5000/appweb:20251202123004
