@@ -17,9 +17,11 @@ public class HelloServlet extends HttpServlet {
         out.println("<html><body>");
         out.println("<h1>안녕, K8S + ArgoCD + GitHub Actions!</h1>");
         out.println("<h1>안녕, K8S + ArgoCD + GitHub Actions!</h1>");
+        out.println("<h1>안녕, K8S + ArgoCD + GitHub Actions!</h1>");
         out.println("</body></html>");
     }
 }
+
 
 
 
