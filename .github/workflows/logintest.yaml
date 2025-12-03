@@ -15,7 +15,7 @@ env:
 
 jobs:
   build-and-deploy:
-    # 🔹 더 이상 self-hosted 아님!
+    # 👉 self-hosted 안 씀, GitHub에서 제공하는 러너 사용
     runs-on: ubuntu-latest
 
     steps:
@@ -40,24 +40,31 @@ jobs:
       - name: Set image tag (datetime)
         run: echo "IMAGE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
-      # 5. Docker 버전 확인 (ubuntu-latest에 이미 docker 설치되어 있음)
-      - name: Check Docker
-        run: docker --version
+      # 5. 레지스트리 CA 인증서를 Docker가 신뢰하도록 설치
+      #    REGISTRY_CA_CRT = /opt/registry/certs/domain.crt 내용 전체를
+      #    GitHub Secrets 에 등록한 값
+      - name: Install registry CA cert for Docker
+        run: |
+          sudo mkdir -p /etc/docker/certs.d/211.34.229.48:5000
+          echo "${{ secrets.REGISTRY_CA_CRT }}" | sudo tee /etc/docker/certs.d/211.34.229.48:5000/ca.crt > /dev/null
 
-      # 6. 레지스트리 로그인
+      # 6. 레지스트리 로그인 (ID = rocky, PW = dltkddls 를
+      #    REGISTRY_USER / REGISTRY_PASSWORD Secret 으로 등록해두기)
       - name: Log in to registry
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD }}" \
             | docker login $REGISTRY -u "${{ secrets.REGISTRY_USER }}" --password-stdin
 
       # 7. Docker 이미지 빌드 & Push
+      #    - 컨텍스트는 프로젝트 루트(.)
+      #    - Dockerfile 은 docker/Dockerfile
+      #    - Dockerfile 안에서는 COPY app/target/appweb.war ... 사용
       - name: Build and push image
         run: |
-          # 🔹 컨텍스트를 프로젝트 루트(.)로!
           docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .
           docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
-      # 8. K8s YAML 의 image 줄을 새 태그로 통째로 교체
+      # 8. K8s YAML 의 image 줄을 새 태그로 교체
       - name: Update k8s deployment image tag
         run: |
           sed -i "s|image:.*|image: $REGISTRY/$IMAGE_NAME:$IMAGE_TAG|" "$DEPLOYMENT_FILE"
@@ -71,3 +78,4 @@ jobs:
           git add "$DEPLOYMENT_FILE"
           git commit -m "Update image tag to $IMAGE_TAG" || echo "No changes to commit"
           git push
+
