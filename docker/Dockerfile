@@ -1,20 +1,17 @@
-# 1) Tomcat이 설치된 CentOS7 기반 이미지
-FROM tomcat:9.0-jdk11-temurin
+# 1) 베이스 이미지
+FROM 211.34.229.48:5000/appweb:20251202225313
 
-# 2) 서버 설정 복사 (Git 리포지토리의 docker/server.xml 사용)
+# 2) 기존 conf 전체 삭제
 RUN rm -rf /usr/local/tomcat/conf/*
+
+# 3) server.xml 재적용
 COPY tomcat_conf/server.xml /usr/local/tomcat/conf/server.xml
 
-# 3) 빌드된 WAR 파일 복사
-#   GitHub Actions에서 app/target/appweb.war 를 이 경로로 복사해서 빌드할 예정
-COPY app/target/appweb.war /usr/local/tomcat/appweb/appweb.war
+# 4) WAR 배포
+COPY app/target/appweb.war /usr/local/tomcat/webapps/ROOT.war
 
-# 4) 포트 오픈 (Tomcat 디폴트 8080)
 EXPOSE 8080
-
-# 5) Tomcat 실행
 CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
-
 
 
 
