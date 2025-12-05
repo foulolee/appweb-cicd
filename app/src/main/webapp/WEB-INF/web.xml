@@ -8,21 +8,10 @@
 
     <display-name>appweb</display-name>
 
-    <!-- (옵션) 서블릿 매핑 예시
-    <servlet>
-        <servlet-name>helloServlet</servlet-name>
-        <servlet-class>com.example.appweb.HelloServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>helloServlet</servlet-name>
-        <url-pattern>/hello</url-pattern>
-    </servlet-mapping>
-    -->
-
-    <!-- 기본 인덱스 페이지 -->
+    <!-- IP만 쳐도 index.jsp -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
 </web-app>
+
