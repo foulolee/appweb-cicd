@@ -33,6 +33,7 @@
     <p>IP Address: <b><%= hostaddr %></b></p>
 
     <hr>
-    <p>새로고침하면 count 값이 증가합니다.</p>
+    <p>새로고침하면 count 값ㅇ이 증가합니다.</p>
 </body>
+
 </html>
