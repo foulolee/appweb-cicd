@@ -21,8 +21,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0           # <- non-fast-forward 방지용 (rebase 가능하게)
+          fetch-depth: 0
           persist-credentials: true
+
+      # 1-1. 원격 main 최신 상태로 먼저 맞추기 (충돌 방지)
+      - name: Sync with latest main
+        run: |
+          git pull --ff-only origin main
 
       # 2. JDK 8 + Maven 설정
       - name: Set up JDK 8
@@ -63,7 +68,7 @@ jobs:
           sed -i "s|image:.*|image: $REGISTRY/$IMAGE_NAME:$IMAGE_TAG|" "$DEPLOYMENT_FILE"
           echo "Updated image tag to $IMAGE_TAG in $DEPLOYMENT_FILE"
 
-      # 9. 변경된 YAML을 commit + pull --rebase + push
+      # 9. 변경된 YAML을 commit + push (여기서는 pull/rebase 안 함!)
       - name: Commit and push manifest
         run: |
           git config user.name "github-actions[bot]"
@@ -71,11 +76,10 @@ jobs:
 
           git add "$DEPLOYMENT_FILE"
 
-          # 변경 없으면 커밋 스킵
-          git commit -m "Update image tag to $IMAGE_TAG" || echo "No changes to commit"
-
-          # 원격 main 최신 내용 위로 rebase (여기서 이전에 봤던 non-fast-forward 해결)
-          git pull --rebase origin main
-
-          # rebase 성공하면 push
-          git push origin HEAD:main
+          # 변경이 있는 경우에만 커밋 + 푸시
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update image tag to $IMAGE_TAG"
+            git push origin main
+          fi
