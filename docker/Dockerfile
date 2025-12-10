@@ -13,7 +13,7 @@ COPY appweb.war /usr/local/tomcat/webapps/ROOT.war
 EXPOSE 8080
 
 # 5) Tomcat 실행
-CMD ["/bin/bash", "-c", "/usr/local/tomcat/bin/catalina.sh start"]
+CMD ["/bin/bash", "-c", "/usr/local/tomcat/bin/catalina.sh start && tail -f /dev/null"]
 
 
 
@@ -34,6 +34,7 @@ CMD ["/bin/bash", "-c", "/usr/local/tomcat/bin/catalina.sh start"]
 
 # 5) Tomcat 실행
 #CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+
 
 
 
