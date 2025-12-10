@@ -1,5 +1,5 @@
 # 1) 베이스 이미지만 내 레지스트리 이미지로 변경
-FROM 211.34.229.48:5000/rocky9-custom:latest
+FROM 211.34.229.48:5000/tomcat:latest
 
 # 2) 기존 conf 삭제 + 새 server.xml 적용
 RUN rm -rf /usr/local/tomcat/conf/*
@@ -34,6 +34,7 @@ CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
 
 # 5) Tomcat 실행
 #CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+
 
 
 
