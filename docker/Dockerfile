@@ -1,9 +1,9 @@
 # 1) 베이스 이미지만 내 레지스트리 이미지로 변경
-FROM 211.34.229.48:5000/tomcat:latest
+FROM 211.34.229.48:5000/basic11:latest
 
 # 2) 기존 conf 삭제 + 새 server.xml 적용
-#RUN rm -rf /usr/local/tomcat/conf/*
-#COPY tomcat_conf/* /usr/local/tomcat/conf/server.xml
+RUN rm -rf /usr/local/tomcat/conf/*
+COPY tomcat_conf/* /usr/local/tomcat/conf/server.xml
 
 # 3) 기본 webapps 삭제 후 새 WAR 배포
 RUN rm -rf /usr/local/tomcat/webapps/*
@@ -34,6 +34,7 @@ CMD ["/bin/bash", "-c", "/usr/local/tomcat/bin/catalina.sh start && tail -f /dev
 
 # 5) Tomcat 실행
 #CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+
 
 
 
