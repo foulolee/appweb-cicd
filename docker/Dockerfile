@@ -1,5 +1,5 @@
 # 1) 베이스 이미지만 내 레지스트리 이미지로 변경
-FROM 211.34.229.48:5000/basic11:latest
+FROM 211.34.229.48:5000/was-tomcat9:1.0:latest
 
 # 2) 기존 conf 삭제 + 새 server.xml 적용
 RUN rm -rf /usr/local/tomcat/conf/*
@@ -7,7 +7,7 @@ COPY tomcat_conf/* /usr/local/tomcat/conf/
 
 # 3) 기본 webapps 삭제 후 새 WAR 배포
 RUN rm -rf /usr/local/tomcat/webapps/*
-COPY appweb.war /usr/local/tomcat/webapps/ROOT.war
+COPY app.war /usr/local/tomcat/webapps/ROOT.war
 
 # 4) 포트 오픈
 EXPOSE 8080
