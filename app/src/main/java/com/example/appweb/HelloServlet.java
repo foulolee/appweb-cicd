@@ -28,6 +28,7 @@ public class HelloServlet extends HttpServlet {
         out.println("<p>Session ID: " + session.getId() + "</p>");
         out.println("<p>Server Hostname: " + hostname + "</p>");
         out.println("<p>Server IP: " + hostaddr + "</p>");
-        out.println("</body></html>");
+        out.println("</body></html>");  
+        out.println("안녕");
     }
 }
