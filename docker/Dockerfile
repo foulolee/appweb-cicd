@@ -1,7 +1,7 @@
 FROM 211.34.229.48:5000/was-tomcat9:1.0
 
 # 1. server.xml만 교체 (전체 삭제 X)
-COPY docker/tomcat_conf/server.xml /usr/local/tomcat/conf/server.xml
+COPY tomcat_conf/server.xml /usr/local/tomcat/conf/server.xml
 
 # 2. 기본 webapps 제거
 RUN rm -rf /usr/local/tomcat/webapps/*
