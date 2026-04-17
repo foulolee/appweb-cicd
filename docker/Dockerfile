@@ -7,7 +7,7 @@ COPY docker/tomcat_conf/server.xml /usr/local/tomcat/conf/server.xml
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 # 3. WAR 배포 (ROOT로)
-COPY app/target/appweb.war /usr/local/tomcat/webapps/ROOT.war
+COPY target/appweb.war /usr/local/tomcat/webapps/appweb.war
 
 # 4. 포트
 EXPOSE 8080
